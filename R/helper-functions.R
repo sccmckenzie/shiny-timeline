@@ -7,7 +7,6 @@ library(ggplot2)
 
 # palette <- c("#79b008", "#cf3601", "#e79b00", "#e6c021", "#b0084b", "#0084be")
 
-# how will app handle events that bleed over to adjacent weeks?
 times <- seq(as_datetime("1993-02-28",tz = "US/Central"), as_datetime("1993-03-14 23:00:00", tz = "US/Central"), by = dhours(1))
 
 event.generator <- function(.t, x, y) {
