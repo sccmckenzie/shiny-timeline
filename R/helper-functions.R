@@ -22,11 +22,11 @@ events <- map2_dfr(.x = list(c(1:4), c(5:8), c(9:12)), .y = c("A", "B", "C"), .f
   pivot_wider(names_from = instance, values_from = time)
 
 year_ww <- function(.t) {
-  str_c(year(.t), "-", str_pad(epiweek(.t), width = 2, pad = "0"))
+  str_c(year(.t), ".", str_pad(epiweek(.t), width = 2, pad = "0"))
 }
 
 wk_boundary <- function(.wk, tz = "US/Central") {
-  if (!str_detect(.wk, "\\d{4}-\\d{1,2}")) {
+  if (!str_detect(.wk, "\\d{4}\\.\\d{1,2}")) {
     stop("please enter week with format YYYY-WW")
   }
   
@@ -40,8 +40,6 @@ wk_boundary <- function(.wk, tz = "US/Central") {
   
   make_datetime(year(day1), month(day1), day(day1), tz = tz) + weeks(as.numeric(str_sub(.wk, 6L, 7L)) - 1)
 }
-
-#map_dbl(str_c("2019", "-", str_pad(1:52, width = 2, pad = "0")), wk_boundary) %>% as_datetime(tz = "US/Central")
 
 
 weeks_crossed <- function(t1, t2) {
@@ -75,8 +73,8 @@ events %>%
   unnest(wk) %>% 
   group_by(event) %>% 
   mutate(hrs_total = (end - start) %>% as.duration() %>% as.double() %>% round(1) / 3600,
-         hrs_down = pmap_dbl(.l = list(t1 = start, t2 = end, wk = wk), .f = hrs_during_week),
-         hrs_total_sim = sum(hrs_down)) # it works
+         hrs_down = pmap_dbl(.l = list(t1 = start, t2 = end, wk = wk), .f = hrs_during_week)) %>% 
+  filter(as.numeric(wk) > 1993.09)
 
 events %>% 
   ggplot() +
