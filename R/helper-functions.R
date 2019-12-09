@@ -5,9 +5,7 @@ library(tidyr)
 library(stringr)
 library(ggplot2)
 
-# palette <- c("#79b008", "#cf3601", "#e79b00", "#e6c021", "#b0084b", "#0084be")
-
-times <- seq(as_datetime("1993-02-28",tz = "US/Central"), as_datetime("1993-03-14 23:00:00", tz = "US/Central"), by = dhours(1))
+times <- seq(as_datetime("1993-02-14",tz = "US/Central"), as_datetime("1993-03-14 23:00:00", tz = "US/Central"), by = dhours(1))
 
 event.generator <- function(.t, x, y) {
   tibble(event = x,
@@ -17,7 +15,7 @@ event.generator <- function(.t, x, y) {
 }
 
 event.generator1 <- function(x, y) map_dfr(.x = x, .f = event.generator, .t = times, y = y)
-set.seed(17)
+set.seed(1)
 events <- map2_dfr(.x = list(c(1:4), c(5:8), c(9:12)), .y = c("A", "B", "C"), .f = event.generator1) %>% 
   pivot_wider(names_from = instance, values_from = time)
 
@@ -41,9 +39,11 @@ wk_boundary <- function(.wk, tz = "US/Central") {
   make_datetime(year(day1), month(day1), day(day1), tz = tz) + weeks(as.numeric(str_sub(.wk, 6L, 7L)) - 1)
 }
 
-
+## !!!!!!! This needs to be fixed!!!!!
 weeks_crossed <- function(t1, t2) {
-  unique(c(year_ww(min(t1, t2)), year_ww(max(t1, t2))))
+  d <- unique(c(seq(t1, t2, by = dweeks(1)), t2))
+  
+  map_chr(d, year_ww)
 }
 
 hrs_during_week <- function(t1, t2, wk) {
@@ -76,8 +76,3 @@ events %>%
          hrs_down = pmap_dbl(.l = list(t1 = start, t2 = end, wk = wk), .f = hrs_during_week)) %>% 
   filter(as.numeric(wk) > 1993.09)
 
-events %>% 
-  ggplot() +
-  geom_point(aes(factor(event), time, color = category)) +
-  geom_line(aes(factor(event), time, color = category)) +
-  coord_flip()
