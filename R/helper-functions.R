@@ -39,11 +39,10 @@ wk_boundary <- function(.wk, tz = "US/Central") {
   make_datetime(year(day1), month(day1), day(day1), tz = tz) + weeks(as.numeric(str_sub(.wk, 6L, 7L)) - 1)
 }
 
-## !!!!!!! This needs to be fixed!!!!!
 weeks_crossed <- function(t1, t2) {
   d <- unique(c(seq(t1, t2, by = dweeks(1)), t2))
   
-  map_chr(d, year_ww)
+  unique(map_chr(d, year_ww))
 }
 
 hrs_during_week <- function(t1, t2, wk) {
@@ -67,6 +66,13 @@ hrs_during_week <- function(t1, t2, wk) {
   
   (a / 3600) %>% round(1)
 }
+
+ww_choices <- function(n = 7) {
+  a <- weeks_crossed(now() - dweeks(n), now())
+  a[length(a)] <- str_c(a[length(a)], " (Current WW)")
+  a
+}
+
 
 events %>% 
   mutate(wk = map2(.x = start, .y = end, .f = weeks_crossed)) %>% 
