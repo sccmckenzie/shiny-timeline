@@ -25,10 +25,10 @@ server <- function(input, output, session) {
   })
   
   observe({
-    x <- as.numeric(str_sub(input$intlk_ww1, 1, 7))
+    x <- input$intlk_ww1
     
     updateSelectInput(session, "intlk_ww2",
-                      choices = ww_choices()[as.numeric(str_sub(ww_choices(), 1, 7)) >= x])
+                      choices = ww_choices()[ww_choices() >= x])
   })
 }
 

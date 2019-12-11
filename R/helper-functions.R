@@ -5,20 +5,6 @@ library(tidyr)
 library(stringr)
 library(ggplot2)
 
-times <- seq(as_datetime("1993-02-14",tz = "US/Central"), as_datetime("1993-03-14 23:00:00", tz = "US/Central"), by = dhours(1))
-
-event.generator <- function(.t, x, y) {
-  tibble(event = x,
-         category = y,
-         instance = c("start", "end"),
-         time = sample(.t, size = 2, replace = FALSE) %>% sort())
-}
-
-event.generator1 <- function(x, y) map_dfr(.x = x, .f = event.generator, .t = times, y = y)
-set.seed(1)
-events <- map2_dfr(.x = list(c(1:4), c(5:8), c(9:12)), .y = c("A", "B", "C"), .f = event.generator1) %>% 
-  pivot_wider(names_from = instance, values_from = time)
-
 year_ww <- function(.t) {
   str_c(year(.t), ".", str_pad(epiweek(.t), width = 2, pad = "0"))
 }
@@ -67,18 +53,33 @@ hrs_during_week <- function(t1, t2, wk) {
   (a / 3600) %>% round(1)
 }
 
-ww_choices <- function(n = 7) {
-  a <- weeks_crossed(now() - dweeks(n), now())
+ww_choices <- function(n = 7, t = now()) {
+  a <- weeks_crossed(t - dweeks(n), t)
+  b <- as.numeric(a)
   a[length(a)] <- str_c(a[length(a)], " (Current WW)")
-  a
+  setNames(b, a)
 }
 
 
-events %>% 
-  mutate(wk = map2(.x = start, .y = end, .f = weeks_crossed)) %>% 
-  unnest(wk) %>% 
-  group_by(event) %>% 
-  mutate(hrs_total = (end - start) %>% as.duration() %>% as.double() %>% round(1) / 3600,
-         hrs_down = pmap_dbl(.l = list(t1 = start, t2 = end, wk = wk), .f = hrs_during_week)) %>% 
-  filter(as.numeric(wk) > 1993.09)
+pull.data <- function(input$intlk_ww1, input$intlk_ww2) {
+  times <- seq(as_datetime("1992-12-01",tz = "US/Central"), as_datetime("1993-04-01 23:00:00", tz = "US/Central"), by = dhours(1))
+  
+  event.generator <- function(.t, x, y) {
+    tibble(event = x,
+           category = y,
+           instance = c("start", "end"),
+           time = sample(.t, size = 2, replace = FALSE) %>% sort())
+  }
+  
+  event.generator1 <- function(x, y) map_dfr(.x = x, .f = event.generator, .t = times, y = y)
+  set.seed(1)
+  events <- map2_dfr(.x = list(c(1:4), c(5:8), c(9:12)), .y = c("A", "B", "C"), .f = event.generator1) %>% 
+    pivot_wider(names_from = instance, values_from = time) %>% 
+    mutate(wk = map2(.x = start, .y = end, .f = weeks_crossed)) %>% 
+    unnest(wk) %>% 
+    group_by(event) %>% 
+    mutate(hrs_total = (end - start) %>% as.duration() %>% as.double() %>% round(1) / 3600,
+           hrs_down = pmap_dbl(.l = list(t1 = start, t2 = end, wk = wk), .f = hrs_during_week)) %>% 
+    filter(as.numeric(wk) > 1993.09)
+}
 
