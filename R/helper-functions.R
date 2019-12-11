@@ -53,15 +53,15 @@ hrs_during_week <- function(t1, t2, wk) {
   (a / 3600) %>% round(1)
 }
 
-ww_choices <- function(n = 7, t = now()) {
-  a <- weeks_crossed(t - dweeks(n), t)
+ww_choices <- function(n = 7) {
+ # a <- weeks_crossed(now() - dweeks(n), now())
+  a <- weeks_crossed(as_datetime("1992-12-01", tz = "US/Central"), as_datetime("1993-04-01", tz = "US/Central"))
   b <- as.numeric(a)
   a[length(a)] <- str_c(a[length(a)], " (Current WW)")
   setNames(b, a)
 }
 
-
-pull.data <- function(input$intlk_ww1, input$intlk_ww2) {
+pull.data <- function(intlk_ww1, intlk_ww2) {
   times <- seq(as_datetime("1992-12-01",tz = "US/Central"), as_datetime("1993-04-01 23:00:00", tz = "US/Central"), by = dhours(1))
   
   event.generator <- function(.t, x, y) {
@@ -72,14 +72,27 @@ pull.data <- function(input$intlk_ww1, input$intlk_ww2) {
   }
   
   event.generator1 <- function(x, y) map_dfr(.x = x, .f = event.generator, .t = times, y = y)
+  
+  p <- list()
+  
   set.seed(1)
-  events <- map2_dfr(.x = list(c(1:4), c(5:8), c(9:12)), .y = c("A", "B", "C"), .f = event.generator1) %>% 
+  p$tbl <- map2_dfr(.x = list(c(1:8), c(8:16), c(17:24)), .y = c("A", "B", "C"), .f = event.generator1) %>% 
     pivot_wider(names_from = instance, values_from = time) %>% 
     mutate(wk = map2(.x = start, .y = end, .f = weeks_crossed)) %>% 
     unnest(wk) %>% 
     group_by(event) %>% 
     mutate(hrs_total = (end - start) %>% as.duration() %>% as.double() %>% round(1) / 3600,
-           hrs_down = pmap_dbl(.l = list(t1 = start, t2 = end, wk = wk), .f = hrs_during_week)) %>% 
-    filter(as.numeric(wk) > 1993.09)
+           hrs_wk = pmap_dbl(.l = list(t1 = start, t2 = end, wk = wk), .f = hrs_during_week)) %>% 
+    ungroup() %>% 
+    filter(as.numeric(wk) >= intlk_ww1,
+           as.numeric(wk) <= intlk_ww2)
+  
+  p$p1 <- p$tbl %>% 
+    group_by(wk, category) %>% 
+    summarise(hrs = sum(hrs_wk)) %>% 
+    ggplot(aes(wk, hrs)) +
+    geom_col(aes(fill = category), position = "dodge")
+  
+  return(p)
 }
 
