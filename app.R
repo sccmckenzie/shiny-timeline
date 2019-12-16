@@ -19,8 +19,16 @@ ui <- tagList(
                           actionButton("pull_data", label = NULL)
                       ),
                       shinyjs::hidden(div(id = "timeline-content",
-                                          actionLink("repull", "Re-pull data"),
-                                        plotOutput("plot1", width = "800px", height = "400px")
+                                          div(class = "timeline-container",
+                                              div(style="display: inline-block;vertical-align:top; width: 200px;",
+                                                  selectInput(inputId = "intlk_ww1", "Begin WW",
+                                                              choices = ww_choices())),
+                                              div(style="display: inline-block;vertical-align:top; width: 200px;",
+                                                  selectInput(inputId = "intlk_ww2", "End WW",
+                                                              choices = ww_choices()))),
+                                          div(class = "timeline-containter",
+                                              plotOutput("plot1", width = "800px", height = "400px")),
+                                          actionLink("repull", "Re-pull data")
                       ))
              )))
 

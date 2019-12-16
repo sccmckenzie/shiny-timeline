@@ -53,9 +53,9 @@ hrs_during_week <- function(t1, t2, wk) {
   (a / 3600) %>% round(1)
 }
 
-ww_choices <- function(n = 7) {
- # a <- weeks_crossed(now() - dweeks(n), now())
-  a <- weeks_crossed(as_datetime("1992-12-01", tz = "US/Central"), as_datetime("1993-04-01", tz = "US/Central"))
+ww_choices <- function(.date) {
+  #a <- weeks_crossed(as_datetime(.date, tz = "US/Central"), now())
+  a <- weeks_crossed(as_datetime(.date, tz = "US/Central"), as_datetime("1993-04-01", tz = "US/Central"))
   b <- as.numeric(a)
   a[length(a)] <- str_c(a[length(a)], " (Current WW)")
   setNames(b, a)
