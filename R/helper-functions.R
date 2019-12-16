@@ -84,15 +84,18 @@ pull.data <- function(input_date) {
     mutate(hrs_total = (end - start) %>% as.duration() %>% as.double() %>% round(1) / 3600,
            hrs_wk = pmap_dbl(.l = list(t1 = start, t2 = end, wk = wk), .f = hrs_during_week)) %>% 
     ungroup() %>% 
-    filter(as.numeric(wk) >= as.numeric(year_ww(input_date))) # in practice this input will be fed into data pull much earlier
+    filter(as.numeric(wk) >= as.numeric(year_ww(input_date))) %>% # in practice this input will be fed into data pull much earlier
+    print() 
 }
 
-plot1 <- function(.data, input_ww1, input_ww2) {
+p1 <- function(.data, input_ww1, input_ww2) {
   .data %>% 
-    filter(as.numeric(wk) <= input_ww2,
-           as.numeric(wk) >= input_ww1) %>% 
+    # filter(as.numeric(wk) <= input_ww2,
+    #        as.numeric(wk) >= input_ww1) %>% 
     group_by(wk, category) %>% 
     summarise(hrs = sum(hrs_wk)) %>% 
+    ungroup() %>% 
+    complete(wk, category) %>% 
     ggplot(aes(wk, hrs)) +
     geom_col(aes(fill = category), position = "dodge")
 }

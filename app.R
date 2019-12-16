@@ -17,10 +17,11 @@ ui <- tagList(
                                     max = "1993-04-01"
                                     ),
                           actionButton("pull_data", label = NULL)
-                      )#,
-                      # shinyjs::hide(div(id = "timeline-content",
-                      #                   plotOutput("plot1", width = "800px", height = "400px")
-                      # ))
+                      ),
+                      shinyjs::hidden(div(id = "timeline-content",
+                                          actionLink("repull", "Re-pull data"),
+                                        plotOutput("plot1", width = "800px", height = "400px")
+                      ))
              )))
 
 
@@ -30,12 +31,24 @@ server <- function(input, output, session) {
     # updateActionButton(session, "pull_data", str_c("Pull data [", year_ww(input$user_date), " ~ ", year_ww(lubridate::today()), "]"))
     updateActionButton(session, "pull_data", str_c("Pull data [", year_ww(input$user_date), " ~ ", year_ww("1993-04-01"), "]"))
   })
-  
+
   observeEvent(input$pull_data, {
-    shinyjs::hide("timeline-date-select")
-    shinyjs::show("timeline-content")
+    shinyjs::hide(id = "timeline-date-select")
+    shinyjs::show(id = "timeline-content")
   })
   
+  observeEvent(input$repull, {
+    shinyjs::hide(id = "timeline-content")
+    shinyjs::show(id = "timeline-date-select")
+  })
+  
+  data <- eventReactive(input$pull_data, {
+    pull.data(input$user_date)
+  })
+  
+  output$plot1 <- renderPlot({
+    p1(data())
+  })
   
 }
 
