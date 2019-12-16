@@ -17,10 +17,10 @@ ui <- tagList(
                                     max = "1993-04-01"
                                     ),
                           actionButton("pull_data", label = NULL)
-                      ),
-                      shinyjs::hide(div(id = "timeline-content",
-                                        plotOutput("plot1", width = "800px", height = "400px")
-                      ))
+                      )#,
+                      # shinyjs::hide(div(id = "timeline-content",
+                      #                   plotOutput("plot1", width = "800px", height = "400px")
+                      # ))
              )))
 
 
