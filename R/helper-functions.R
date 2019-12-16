@@ -61,7 +61,7 @@ ww_choices <- function(n = 7) {
   setNames(b, a)
 }
 
-pull.data <- function(intlk_ww1, intlk_ww2) {
+pull.data <- function(input_date) {
   times <- seq(as_datetime("1992-12-01",tz = "US/Central"), as_datetime("1993-04-01 23:00:00", tz = "US/Central"), by = dhours(1))
   
   event.generator <- function(.t, x, y) {
@@ -76,7 +76,7 @@ pull.data <- function(intlk_ww1, intlk_ww2) {
   p <- list()
   
   set.seed(1)
-  p$tbl <- map2_dfr(.x = list(c(1:8), c(8:16), c(17:24)), .y = c("A", "B", "C"), .f = event.generator1) %>% 
+  map2_dfr(.x = list(c(1:8), c(8:16), c(17:24)), .y = c("A", "B", "C"), .f = event.generator1) %>% 
     pivot_wider(names_from = instance, values_from = time) %>% 
     mutate(wk = map2(.x = start, .y = end, .f = weeks_crossed)) %>% 
     unnest(wk) %>% 
@@ -84,15 +84,16 @@ pull.data <- function(intlk_ww1, intlk_ww2) {
     mutate(hrs_total = (end - start) %>% as.duration() %>% as.double() %>% round(1) / 3600,
            hrs_wk = pmap_dbl(.l = list(t1 = start, t2 = end, wk = wk), .f = hrs_during_week)) %>% 
     ungroup() %>% 
-    filter(as.numeric(wk) >= intlk_ww1,
-           as.numeric(wk) <= intlk_ww2)
-  
-  p$p1 <- p$tbl %>% 
+    filter(as.numeric(wk) >= year_ww(input_date)) # in practice this input will be fed into data pull much earlier
+}
+
+plot1 <- function(.data, input_ww1, input_ww2) {
+  .data %>% 
+    filter(as.numeric(wk) <= year_ww(input_ww2),
+           as.numeric(wk) >= year_ww(input_ww1)) %>% 
     group_by(wk, category) %>% 
     summarise(hrs = sum(hrs_wk)) %>% 
     ggplot(aes(wk, hrs)) +
     geom_col(aes(fill = category), position = "dodge")
-  
-  return(p)
 }
 
