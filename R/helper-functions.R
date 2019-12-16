@@ -90,8 +90,8 @@ pull.data <- function(input_date) {
 
 p1 <- function(.data, input_ww1, input_ww2) {
   .data %>% 
-    # filter(as.numeric(wk) <= input_ww2,
-    #        as.numeric(wk) >= input_ww1) %>% 
+    filter(as.numeric(wk) <= input_ww2,
+           as.numeric(wk) >= input_ww1) %>%
     group_by(wk, category) %>% 
     summarise(hrs = sum(hrs_wk)) %>% 
     ungroup() %>% 

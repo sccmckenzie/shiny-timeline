@@ -22,15 +22,19 @@ ui <- tagList(
                                           div(class = "timeline-container",
                                               div(style="display: inline-block;vertical-align:top; width: 200px;",
                                                   selectInput(inputId = "intlk_ww1", "Begin WW",
-                                                              choices = ww_choices())),
+                                                              choices = NULL)),
                                               div(style="display: inline-block;vertical-align:top; width: 200px;",
                                                   selectInput(inputId = "intlk_ww2", "End WW",
-                                                              choices = ww_choices()))),
-                                          div(class = "timeline-containter",
+                                                              choices = NULL))),
+                                          div(class = "timeline-container",
                                               plotOutput("plot1", width = "800px", height = "400px")),
                                           actionLink("repull", "Re-pull data")
                       ))
-             )))
+             ), tabPanel("Test",
+                         p("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum")
+             )
+  )
+)
 
 
 
@@ -45,17 +49,36 @@ server <- function(input, output, session) {
     shinyjs::show(id = "timeline-content")
   })
   
+  observeEvent(input$pull_data, {
+    updateSelectInput(session, "intlk_ww1",
+                      choices = ww_choices(input$user_date),
+                      selected = head(ww_choices(input$user_date), 1))
+    updateSelectInput(session, "intlk_ww2",
+                      choices = ww_choices(input$user_date),
+                      selected = tail(ww_choices(input$user_date), 1))
+  })
+
+  observe({
+    x <- input$intlk_ww1
+
+    updateSelectInput(session, "intlk_ww2",
+                      choices = ww_choices(input$user_date)[ww_choices(input$user_date) >= x],
+                      selected = tail(ww_choices(input$user_date), 1))
+  })
+  
   observeEvent(input$repull, {
     shinyjs::hide(id = "timeline-content")
     shinyjs::show(id = "timeline-date-select")
   })
+  
+  
   
   data <- eventReactive(input$pull_data, {
     pull.data(input$user_date)
   })
   
   output$plot1 <- renderPlot({
-    p1(data())
+    p1(data(), input$intlk_ww1, input$intlk_ww2)
   })
   
 }
