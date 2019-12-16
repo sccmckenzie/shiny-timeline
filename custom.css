@@ -1,0 +1,17 @@
+#timeline-date-select {
+  background-color: aliceblue;
+  text-align: center;
+  width: 350px;
+  padding: 10px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+#timeline-date-select > .shiny-date-input {
+  margin: auto;
+  padding: 5px;
+  width: 250px;
+}

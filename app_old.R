@@ -3,7 +3,7 @@ source("R/helper-functions.R")
 
 ui <- navbarPage("timeline",
                  tabPanel("Main",
-                          includeCSS("custom.css"),
+                          includeCSS("custom_old.css"),
                           div(class = "container",
                               div(style="display: inline-block;vertical-align:top; width: 200px;",
                                   selectInput(inputId = "intlk_ww1", "Begin WW",
