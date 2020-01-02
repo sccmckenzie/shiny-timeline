@@ -40,8 +40,8 @@ ui <- tagList(
 
 server <- function(input, output, session) {
   observeEvent(input$user_date, {
-    # updateActionButton(session, "pull_data", str_c("Pull data [", year_ww(input$user_date), " ~ ", year_ww(lubridate::today()), "]"))
-    updateActionButton(session, "pull_data", str_c("Pull data [", year_ww(input$user_date), " ~ ", year_ww("1993-04-01"), "]"))
+    # updateActionButton(session, "pull_data", str_c("Pull data [", year_wk(input$user_date), " ~ ", year_wk(lubridate::today()), "]"))
+    updateActionButton(session, "pull_data", str_c("Pull data [", year_wk(input$user_date), " ~ ", year_wk("1993-04-01"), "]"))
   })
 
   observeEvent(input$pull_data, {

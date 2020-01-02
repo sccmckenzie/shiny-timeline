@@ -5,8 +5,14 @@ library(tidyr)
 library(stringr)
 library(ggplot2)
 
-year_ww <- function(.t) {
-  str_c(year(floor_date(as_date(.t), unit = "weeks")), ".", str_pad(epiweek(.t), width = 2, pad = "0"))
+year_wk <- function(.t) {
+  wk <- epiweek(.t)
+  if (wk == 1) {
+    yr <- year(floor_date(as_date(.t) + weeks(1), unit = "weeks"))
+  } else {
+    yr <- year(floor_date(as_date(.t), unit = "weeks"))
+  }
+  str_c(yr, ".", str_pad(wk, width = 2, pad = "0"))
 }
 
 wk_boundary <- function(.wk, tz = "US/Central") {
@@ -28,21 +34,22 @@ wk_boundary <- function(.wk, tz = "US/Central") {
 weeks_crossed <- function(t1, t2) {
   d <- unique(c(seq(t1, t2, by = dweeks(1)), t2))
   
-  unique(map_chr(d, year_ww))
+  unique(map_chr(d, year_wk))
 }
 
-hrs_during_week <- function(t1, t2, wk) {
+hrs_during_wk <- function(t1, t2, wk) {
   bnd_start <- wk_boundary(wk)
-  
   bnd_end <- bnd_start + weeks(1)
   
-  if (bnd_start %within% interval(t1, t2)) { # if event begins in past week
+  if(!int_overlaps(interval(t1, t2), interval(bnd_start, bnd_end))) {
+    a <- 0
+  } else if (bnd_start %within% interval(t1, t2)) { # if event begins in past week
     if (bnd_end %within% interval(t1, t2)) { # and ends in future week
       a <- int_length(interval(bnd_start, bnd_end)) 
     } else {  # and ends in current week
       a <- int_length(interval(bnd_start, t2))
     }
-  } else { # if event begins in current week
+  } else if (t1 %within% interval(bnd_start, bnd_end)) { # if event begins in current week
     if (bnd_end %within% interval(t1, t2)) { # and ends in future week
       a <- int_length(interval(t1, bnd_end))
     } else { # and ends in current week
@@ -82,9 +89,9 @@ pull.data <- function(input_date) {
     unnest(wk) %>% 
     group_by(event) %>% 
     mutate(hrs_total = (end - start) %>% as.duration() %>% as.double() %>% round(1) / 3600,
-           hrs_wk = pmap_dbl(.l = list(t1 = start, t2 = end, wk = wk), .f = hrs_during_week)) %>% 
+           hrs_wk = pmap_dbl(.l = list(t1 = start, t2 = end, wk = wk), .f = hrs_during_wk)) %>% 
     ungroup() %>% 
-    filter(as.numeric(wk) >= as.numeric(year_ww(input_date))) %>% # in practice this input will be fed into data pull much earlier
+    filter(as.numeric(wk) >= as.numeric(year_wk(input_date))) %>% # in practice this input will be fed into data pull much earlier
     print() 
 }
 

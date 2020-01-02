@@ -30,8 +30,9 @@
 }
 
 .timeline-container {
+  position: relative;
   border: 1px solid lightslategrey;
   border-radius: 5px;
   padding: 5px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
