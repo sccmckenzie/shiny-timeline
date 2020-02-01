@@ -107,3 +107,8 @@ p1 <- function(.data, input_ww1, input_ww2) {
     geom_col(aes(fill = category), position = "dodge")
 }
 
+
+#0a8280
+#53b3bc
+#cf6618
+
