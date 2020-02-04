@@ -13,11 +13,11 @@ ui <- fluidPage(
       dateInput("date", "All events will more or less be calculated around selected Date", value = today()),
       numericInput("n", "# of data points", 6, min = 1, max = 20),
       numericInput("spacing", "event spacing", 2, min = 1, max = 10),
-      tableOutput("kable")),
+      tableOutput("kable_summary")),
   div(class = "inline",
       plotOutput("timeline", width = "600px", height = "400px", click = "timeline_click")),
   div(class = "inline",
-      verbatimTextOutput("click_info"))
+      tableOutput("kable_selected"))
 )
 
 server <- function(input, output, session) {
@@ -31,6 +31,11 @@ server <- function(input, output, session) {
   
   tbl <- reactive(make.events(input$date, input$n, input$spacing))
   
+  tbl_timeline <- reactive({
+    pivot_longer(tbl(), cols = t1:t2, names_to = "key", values_to = "time") %>% 
+      mutate(nickname = factor(nickname))
+  })
+  
   output$kable <- function() {
     tbl() %>% 
       knitr::kable("html") %>% 
@@ -38,18 +43,27 @@ server <- function(input, output, session) {
   }
   
   output$timeline <- renderPlot({
-    tbl() %>% 
-      pivot_longer(cols = t1:t2, names_to = "key", values_to = "time") %>% 
+    tbl_timeline() %>% 
       ggplot(aes(time, nickname)) +
       geom_line(size = 10, color = "#0a8280") +
       theme_minimal()
-      
-
   })
   
-  output$click_info <- renderPrint({
-    nearPoints(tbl(), input$timeline_click)
+  selected_event <- reactive({
+    if (is.null(input$timeline_click$y)) return()
+    
+    levels(purrr::pluck(tbl_timeline(), "nickname"))[round(input$timeline_click$y)]
   })
+  
+  output$kable_selected <- function() {
+    if (is.null(input$timeline_click$y)) return()
+    
+    tbl() %>% 
+      filter(nickname == selected_event()) %>% 
+      knitr::kable("html") %>% 
+      kable_styling("striped", full_width = FALSE, position = "left", font_size = 12)
+  }
+  
   
 }
 
