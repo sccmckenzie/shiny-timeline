@@ -13,7 +13,7 @@ ui <- fluidPage(
       dateInput("date", "All events will more or less be calculated around selected Date", value = today()),
       numericInput("n", "# of data points", 6, min = 1, max = 20),
       numericInput("spacing", "event spacing", 2, min = 1, max = 10),
-      tableOutput("kable_summary")),
+      tableOutput("kable")),
   div(class = "inline",
       plotOutput("timeline", width = "600px", height = "400px", click = "timeline_click")),
   div(class = "inline",
@@ -26,14 +26,17 @@ server <- function(input, output, session) {
   make.events <- function(d, n, spacing) {
     t1 <- rnorm(n, mean = as_datetime(d, tz = "US/Central"), sd = dweeks(spacing)) %>% as_datetime(tz = "US/Central")
     t2 <- t1 + duration(rnorm(n, mean = dweeks(spacing / 2), sd = dweeks(spacing/ 4)))
-    tibble(nickname = sample(words, n), t1, t2)
+    t3 <- t2 + sample(c(ddays(1), NA, prob = c(.2, .8)), n, replace = TRUE)
+    
+    tibble(nickname = factor(sample(words, n)), t1, t2, t3)
   }
   
   tbl <- reactive(make.events(input$date, input$n, input$spacing))
   
   tbl_timeline <- reactive({
-    pivot_longer(tbl(), cols = t1:t2, names_to = "key", values_to = "time") %>% 
-      mutate(nickname = factor(nickname))
+    pivot_longer(tbl(), cols = c(t1, t2), names_to = "key1", values_to = "time1") %>% 
+      select(-t3) %>% 
+      left_join(pivot_longer(tbl(), cols = c(t1, t3), names_to = "key2", values_to = "time2") %>% select(-t2))
   })
   
   output$kable <- function() {
@@ -44,8 +47,9 @@ server <- function(input, output, session) {
   
   output$timeline <- renderPlot({
     tbl_timeline() %>% 
-      ggplot(aes(time, nickname)) +
-      geom_line(size = 10, color = "#0a8280") +
+      ggplot() +
+      geom_line(aes(time2, nickname, color = "extra time"), size = 10) +
+      geom_line(aes(time1, nickname), size = 10, color = "#0a8280") +
       theme_minimal()
   })
   
