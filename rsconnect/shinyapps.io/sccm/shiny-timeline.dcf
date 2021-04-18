@@ -1,0 +1,11 @@
+name: shiny-timeline
+title:
+username:
+account: sccm
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3985327
+bundleId: 4485248
+url: https://sccm.shinyapps.io/shiny-timeline/
+when: 1618712199.98825
+lastSyncTime: 1618712199.98825
